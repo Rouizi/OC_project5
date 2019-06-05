@@ -7,8 +7,7 @@ The startup Pur Beurre noticed that their users wanted to change their diet but 
 Description of the user path
 The user is on the terminal. The terminal shows him the following choices:
 
-1 - Which food do you want to replace?
-
+1 - Which food do you want to replace?\n
 2 - Find my substituted foods.
 
 The user selects 1. The program asks the user the following questions and the user selects the answers:
