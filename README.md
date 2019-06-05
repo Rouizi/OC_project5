@@ -39,7 +39,6 @@ Then start writing the documentation. Yes, first! I propose a work methodology q
 <aside data-claire-semantic = "information">
 You can use the Markdown syntax if you already know it. To do this, simply call your Readme.md document.
 
-</ Aside>
 
 When you start a new feature, write the documentation first. What do you want your program to do? How will the developer understand the code? Then code what you need for your program to "validate" the Readme.
 
@@ -56,10 +55,9 @@ Then write a Python script that will insert the collected data from the API into
 <aside data-claire-semantic = "warning">
 The users of the Pur Beurre startup are French and are probably doing their shopping in France. It is not necessary to import the entire database, especially since it is so large that it would slow down your program considerably (and make your users run away).
 
-</ Aside>
 
 
-### 3 - Build the program
+#### 3 - Build the program
 List the features of your program to ask about the responsibilities of each class. Then build the desired architecture.
 
 ### 4 - Interact with the database
