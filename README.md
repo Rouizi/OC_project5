@@ -13,7 +13,7 @@ The user is on the terminal. The terminal shows him the following choices:
 
 The user selects 1. The program asks the user the following questions and the user selects the answers:
 
-  .Select the category. [Several proposals associated with a number. The user enters the corresponding digit and presses enter]
+    Select the category. [Several proposals associated with a number. The user enters the corresponding digit and presses enter]
   
   .Select the food. [Several proposals associated with a number. The user enters the digit corresponding to the chosen food and presses      enter]
   
