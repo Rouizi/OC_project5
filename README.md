@@ -28,7 +28,7 @@ If the user selects 2, the program displays the result of the searches already d
 
 
 ## Steps
-### 1 - Organize your work
+#### 1 - Organize your work
 
 Cut your program into user stories and then into tasks and subtasks. Create an agile table and assign deadlines.
 
@@ -43,7 +43,7 @@ You can use the Markdown syntax if you already know it. To do this, simply call 
 When you start a new feature, write the documentation first. What do you want your program to do? How will the developer understand the code? Then code what you need for your program to "validate" the Readme.
 
 
-### 2 - Build the database
+#### 2 - Build the database
 Before you get down to the different features of your Readme, start by asking yourself about the information you need and draw the schema of the database. What information will you record? What data will you manipulate?
 
 Then you are interested in external data. The Open Food Facts database has an API (experimental at the moment) that allows you to retrieve the desired data in JSON format. You can consult the documentation of this API.
@@ -60,7 +60,7 @@ The users of the Pur Beurre startup are French and are probably doing their shop
 #### 3 - Build the program
 List the features of your program to ask about the responsibilities of each class. Then build the desired architecture.
 
-### 4 - Interact with the database
+#### 4 - Interact with the database
 You have the database and you have the classes. Bravo! Now, allow your user to interact with the database.
 
 Start by working on the answer question system (input, field validation). Then focus on the search: which SQL queries? In which table (s)?
