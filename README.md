@@ -44,9 +44,9 @@ When you start a new feature, write the documentation first. What do you want yo
 
 
 #### 2 - Build the database
-Before you get down to the different features of your Readme, start by asking yourself about the information you need and draw the schema of the database. What information will you record? What data will you manipulate?
+Before you start the different features of your Readme, start by asking yourself about the information you need and draw the schema of the database. What information will you record? What data will you manipulate?
 
-Then you are interested in external data. The Open Food Facts database has an API (experimental at the moment) that allows you to retrieve the desired data in JSON format. You can consult the documentation of this API.
+Then interest youself in external data. The Open Food Facts database has an API (experimental at the moment) that allows you to retrieve the desired data in JSON format. You can consult the documentation of this API.
 
 Create the database: tables and foreign keys.
 
