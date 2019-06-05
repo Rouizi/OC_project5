@@ -12,13 +12,13 @@ The user is on the terminal. The terminal shows him the following choices:
 
 The user selects 1. The program asks the user the following questions and the user selects the answers:
 
-  a- Select the category. [Several proposals associated with a number. The user enters the corresponding digit and presses enter]
+  - Select the category. [Several proposals associated with a number. The user enters the corresponding digit and presses enter]
   
-  b- Select the food. [Several proposals associated with a number. The user enters the digit corresponding to the chosen food and presses      enter]
+  - Select the food. [Several proposals associated with a number. The user enters the digit corresponding to the chosen food and presses      enter]
   
-  c- The program offers a substitute, its description, a store where to buy it (if any) and a link to the Open Food Facts page about that food.
+  - The program offers a substitute, its description, a store where to buy it (if any) and a link to the Open Food Facts page about that food.
   
-  d- The user then has the possibility to save the result in the database.
+  - The user then has the possibility to save the result in the database.
   
 If the user selects 2, the program displays the result of the searches already done thus avoiding to redo a search in the database.
 
