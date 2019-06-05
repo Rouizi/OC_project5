@@ -26,3 +26,18 @@ If the user selects 2, the program displays the result of the searches already d
 - If the user enters a character that is not a digit, the program must repeat the question,
 - The search must be done on a MySQL basis.
 
+
+##Steps
+### 1 - Organize your work
+
+Cut your program into user stories and then into tasks and subtasks. Create an agile table and assign deadlines.
+
+Before coding, initialize a Github repo and make your first push.
+
+Then start writing the documentation. Yes, first! I propose a work methodology quite recognized in the world of development: the "Doc Driven Development" or "Readme Driven Development". Just create a text file called Readme.txt.
+
+<aside data-claire-semantic = "information">
+You can use the Markdown syntax if you already know it. To do this, simply call your Readme.md document.
+
+</ Aside>
+When you start a new feature, write the documentation first. What do you want your program to do? How will the developer understand the code? Then code what you need for your program to "validate" the Readme.
