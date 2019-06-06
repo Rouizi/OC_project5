@@ -3,11 +3,26 @@ import requests
 
 
 class OpenFoodFact:
-    def __init__(self):
-        pass
+    def __init__(self, url):
+        self.url = url
 
-    def get_ccategory(self):
-        r = requests.get('https://fr.openfoodfacts.org/categories')
+    def get_category(self):
+        r = requests.get(self.url) #'https://fr.openfoodfacts.org/categories&json=1'
+        r_json = r.json()  # dict
+        tag_category = r_json['tags']  # list
+
+        i = 0
+        name = []
+        while i < 10:
+            for data_cat in tag_category:  # tag_category ==> dict
+                if i == 10:
+                    break
+                else:
+                    cat_name = ' '.join(data_cat['id'][3:].split('-'))
+                    name.append(cat_name)
+                i += 1
+        return name
+
     def get_food(self):
         pass
 
@@ -52,7 +67,7 @@ class Database:
                  ")"
                  "ENGINE=InnoDB"
                  )
-        query_products = ("CREATE TABLE Product ("
+        query_product = ("CREATE TABLE Product ("
                           "id INT UNSIGNED NOT NULL AUTO_INCREMENT, "
                           "name VARCHAR(100) NOT NULL, "
                           "category_id SMALLINT UNSIGNED NOT NULL, "
@@ -62,7 +77,7 @@ class Database:
                           "ENGINE=InnoDB"
                           )
 
-        query_substituts = ("CREATE TABLE Substitut ("
+        query_substitut = ("CREATE TABLE Substitut ("
                            "id INT UNSIGNED NOT NULL AUTO_INCREMENT, "
                            "product_id INT UNSIGNED NOT NULL, "
                            "name VARCHAR(100) NOT NULL, "
@@ -79,16 +94,33 @@ class Database:
                            )
         try:
             cursor.execute(query_category)
-            cursor.execute(query_products)
-            cursor.execute(query_substituts)
+            cursor.execute(query_product)
+            cursor.execute(query_substitut)
 
         except mysql.connector.Error as e:
             print(e)
 
     def insert_data(self):
-        pass
+        cursor = self.cnx.cursor()
+        query_insert = "INSERT INTO Category (name) VALUES (%s)"
+        name = OpenFoodFact('https://fr.openfoodfacts.org/categories&json=1').get_category()
+        name_list= []
+        for i in name:
+            name_in_tuple = i,
+            name_list.append(name_in_tuple)
+        print(name_list)
+        try:
+            cursor.executemany(query_insert, name_list)
+            self.cnx.commit()
+
+        except mysql.connector.Error as e:
+            print(e)
+
 
 database = Database('root', 'Lalydydu1456','alimentation')
 database.create_db()
-database.create_tables()
+#database.create_tables()
+database.insert_data()
 
+database.cnx.cursor().close()
+database.cnx.close()
