@@ -188,7 +188,6 @@ class Database:
             cursor.execute(query_product)
             cursor.execute(query_substitut)
             if cursor.fetchwarnings():
-                print(cursor.fetchwarnings())
                 self.insert = False
 
         except mysql.connector.Error as e:
@@ -227,154 +226,73 @@ class Database:
             except mysql.connector.Error as e:
                 print(e)
 
-    def select_data(self, table):
+    def select_cat(self):
         cursor = self.cnx.cursor()
 
-        if table == 'Category':
-            query_cat = "SELECT name FROM Category "
-            cursor.execute(query_cat)
+        query_cat = "SELECT name FROM Category "
+        cursor.execute(query_cat)
 
+        i = 1
+        dict_cat = {}
+        for name in cursor:
+
+            dict_cat[i] = ''.join(name)
+            i += 1
+        return dict_cat
+
+
+    def select_prod_from_cat(self, dict_cat, response):
+        cursor = self.cnx.cursor()
+
+        query_prod_from_cat = ("SELECT Product.name, Product.nutri_score, Product.bar_code FROM Category " 
+                            "INNER JOIN Product ON Product.category_id = Category.id " 
+                            "WHERE Category.name = %s ORDER BY name")
+        name_cat = dict_cat[response],
+        cursor.execute(query_prod_from_cat, name_cat)
+        dict_prod = {}
+        while True:
+            rows = cursor.fetchmany(size=100)
+            if not rows:
+                break
             i = 1
-            dict_cat = {}
-            for name in cursor:
-                print(str(i) + '-', ''.join(name))
-                dict_cat[i] = ''.join(name)
+            for row in rows:
+                dict_prod[i] = [row[0], row[2], row[1]]
                 i += 1
-
-            choice_cat = False
-            while not choice_cat:
-                print(45 * '-')
-                response = input('Sélectionnez une catégorie:')
-                print(45 * '-')
-
-                try:
-                    response = int(response)
-                except ValueError:
-                    print("Vous n'avez pas saisi de nombre")
-                    continue
-
-                if response not in dict_cat.keys():
-                    print("Vous n'avez pas saisi un nombre valide")
-                else:
-                    query_prod_from_cat = ("SELECT Product.name, Product.nutri_score, Product.bar_code FROM Category " 
-                                        "INNER JOIN Product ON Product.category_id = Category.id " 
-                                        "WHERE Category.name = %s ORDER BY name")
-                    name_cat = dict_cat[response],
-                    cursor.execute(query_prod_from_cat, name_cat)
-                    dict_prod = {}
-                    while True:
-                        rows = cursor.fetchmany(size=100)
-                        if not rows:
-                            break
-                        i = 1
-                        for row in rows:
-                            print(str(i)+ '-', row[0], ' ### NUTRI_SCORE:', row[1])
-                            dict_prod[i] = [row[0], row[2], row[1]]
-                            i += 1
+        print(dict_prod)
+        return dict_prod
 
 
-                    choice_prod = False
-                    while not choice_prod:
-                        print(45 * '-')
-                        response2 = input("Sélectionnez un produit: ")
-                        print(45 * '-')
 
-                        try:
-                            response2 = int(response2)
-                        except ValueError:
-                            print("Vous n'avez pas saisi de nombre")
-                            continue
+    def save_substitut(self, bar_code_prod, dict_description, name_prod):
+        cursor = self.cnx.cursor()
 
-                        if response2 not in dict_prod.keys():
-                            print("Vous n'avez pas saisi un nombre valide")
-                            continue
-                        else:
-                            bar_code_prod = dict_prod[response2][1]
-                            name_prod = dict_prod[response2][0]
-                            dict_description = OpenFoodFact('https://fr.openfoodfacts.org/categories&json=1',
-                                            'https://fr.openfoodfacts.org/api/v0/produit').get_substitut(bar_code_prod)
+        query_id = "SELECT id FROM Product WHERE bar_code = %s"
+        arg = bar_code_prod
+        cursor.execute(query_id, (arg,))
+        id = 0
+        for i in cursor:
+            id = i[0]
+        query_insert_sub = ("INSERT INTO Substitut (product_id, name, brand, "
+                            "quantity, ingredients, nutri_score, stores, url) "
+                            "VALUES (%s, %s, %s, %s, %s, %s, %s, %s)")
+        args = (id, dict_description['product_name'], dict_description['brands'],
+                dict_description['quantity'], dict_description['ingredients_text'],
+                dict_description['nutri_score'], dict_description['stores'],
+                dict_description['url'])
+        cursor.execute(query_insert_sub, args)
+        self.cnx.commit()
+        print("Substitut enregistrer")
 
-                            if dict_description:
-                                print('nom du produit:', name_prod)
-                                print('nutri_score du produit:', dict_prod[response2][2])
-                                for key, value in dict_description.items():
-                                    if key == 'product_name':
-                                        print('nom du substitut:', dict_description['product_name'])
-                                    if key == 'nutri_score':
-                                        print('nutri_score:', dict_description['nutri_score'])
-                                    if key == 'brands':
-                                        print('marque(s):', dict_description['brands'])
-                                    if key == 'quantity':
-                                        print('quantité:', dict_description['quantity'])
-                                    if key == 'ingredients_text':
-                                        print('ingrédients:', dict_description['ingredients_text'])
-                                    if key == 'stores':
-                                        print('magasin(s):', dict_description['stores'])
-                                    if key == 'url':
-                                        print('url:', dict_description['url'])
 
-                                if 'product_name' not in dict_description.keys():
-                                    dict_description['product_name'] = ''
-                                if 'nutri_score' not in dict_description.keys():
-                                    dict_description['nutri_score'] = ''
-                                if 'brands' not in dict_description.keys():
-                                    dict_description['brands'] = ''
-                                if 'quantity' not in dict_description.keys():
-                                    dict_description['quantity'] = ''
-                                if 'ingredients_text' not in dict_description.keys():
-                                    dict_description['ingredients_text'] = ''
-                                if 'stores' not in dict_description.keys():
-                                    dict_description['stores'] = ''
-                                if 'url' not in dict_description.keys():
-                                    dict_description['url'] = ''
-                            else:
-                                continue
-
-                            choice = False
-                            while not choice:
-                                print(45 * '-')
-                                print('1- Enregistrer substitut\n'
-                                      '2- Sélectionner un autre produit\n'
-                                      '3- Sélectioner une autre catégorie\n'
-                                      '4- Retourner au menu principal')
-                                response3 = input(': ')
-                                print(45 * '-')
-
-                                try:
-                                    response3 = int(response3)
-                                except ValueError:
-                                    print("Vous n'avez pas saisi de réponse valide" )
-                                    continue
-                                if response3 == 1:
-                                    try:
-                                        query_id = "SELECT id FROM Product WHERE bar_code = %s"
-                                        arg = bar_code_prod
-                                        cursor.execute(query_id, (arg,))
-                                        id = 0
-                                        for i in cursor:
-                                            id = i[0]
-                                        query_insert_sub = ("INSERT INTO Substitut (product_id, name, brand, "
-                                                            "quantity, ingredients, nutri_score, stores, url) "
-                                                            "VALUES (%s, %s, %s, %s, %s, %s, %s, %s)")
-                                        args = (id, name_prod, dict_description['brands'],
-                                                dict_description['quantity'], dict_description['ingredients_text'],
-                                                dict_description['nutri_score'], dict_description['stores'],
-                                                dict_description['url'])
-                                        cursor.execute(query_insert_sub, args)
-                                        self.cnx.commit()
-                                    except mysql.connector.Error:
-                                        print("Vous avez déjà enregistrer ce substitut")
-                                        continue
-
-                                elif response3 == 2:
-                                    choice = True
-                                elif response3 == 3:
-                                    choice = True
-                                    choice_prod = True
-                                elif response3 == 4:
-                                    choice = True
-                                    choice_prod = True
-                                    choice_cat = True
+        """elif response3 == 2:
+            choice = True
+        elif response3 == 3:
+            choice = True
+            choice_prod = True
+        elif response3 == 4:
+            choice = True
+            choice_prod = True
+            choice_cat = True
 
 
 
@@ -382,7 +300,7 @@ class Database:
             pass
 
         elif table == 'Substitut':
-            pass
+            pass"""
 
 
 
