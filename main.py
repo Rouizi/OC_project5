@@ -139,7 +139,8 @@ def main():
         elif int(response1) == 2:
             pass
         elif int(response1) == 3:
-            pass
+            print("A bientôt sur OpenFoodFacts")
+            main_menu = False
         else:
             print("Vous n'avez pas saisi une réponse valide")
 

@@ -59,7 +59,7 @@ class OpenFoodFact:
         r_prod_json = r_prod.json()
         data_prod = r_prod_json['product'] # type(data_prod) = dict
         nutri_score_prod = data_prod['nutrition_grade_fr']
-        # We can simply do list_of_categories = data_prod['categories_hierarchy'] and delete this 5 rows
+        # We can simply do: list_of_categories = data_prod['categories_hierarchy'], and delete this 5 rows
         d = {len(data_prod['categories_hierarchy']): data_prod['categories_hierarchy'],
              len(data_prod['categories'].split(',')): data_prod['categories'].split(','),
              len(data_prod['categories_tags']): data_prod['categories_tags']
@@ -118,6 +118,7 @@ class Database:
         self.password = password
         self.name_db = name_db
         self.insert = True
+        self.is_connected = False
         try:
             self.cnx = mysql.connector.connect(host='localhost',
                                           user=self.user,
@@ -126,25 +127,27 @@ class Database:
             self.cnx.get_warnings = True
             if self.cnx.is_connected():
                 print('vous etes connecté')
+                self.is_connected = True
 
         except mysql.connector.Error as e:
             print(e)
 
 
     def create_db(self):
-        cursor = self.cnx.cursor()
-        query_create = f"CREATE DATABASE IF NOT EXISTS {self.name_db}"
-        query_use = f"USE {self.name_db}"
+        if self.is_connected:
+            cursor = self.cnx.cursor()
+            query_create = f"CREATE DATABASE IF NOT EXISTS {self.name_db}"
+            query_use = f"USE {self.name_db}"
 
-        try:
-            cursor.execute(query_create)
-            if not cursor.fetchwarnings():
-                print(f"Création de la base de données {self.name_db}...")
-            cursor.execute(query_use)
+            try:
+                cursor.execute(query_create)
+                if not cursor.fetchwarnings():
+                    print(f"Création de la base de données {self.name_db}...")
+                cursor.execute(query_use)
 
 
-        except mysql.connector.Error as e:
-            print(e)
+            except mysql.connector.Error as e:
+                print(e)
 
     def create_tables(self):
         cursor = self.cnx.cursor()
@@ -190,11 +193,12 @@ class Database:
             if cursor.fetchwarnings():
                 self.insert = False
 
+
         except mysql.connector.Error as e:
             print(e)
 
     def insert_data(self):
-        if self.insert:
+        if self.is_connected and self.insert:
             cursor = self.cnx.cursor()
 
             # INSERT LIST OF CATEGORY
@@ -263,6 +267,7 @@ class Database:
 
 
 
+
     def save_substitut(self, bar_code_prod, dict_description, name_prod):
         cursor = self.cnx.cursor()
 
@@ -284,23 +289,7 @@ class Database:
         print("Substitut enregistrer")
 
 
-        """elif response3 == 2:
-            choice = True
-        elif response3 == 3:
-            choice = True
-            choice_prod = True
-        elif response3 == 4:
-            choice = True
-            choice_prod = True
-            choice_cat = True
 
-
-
-        elif table == 'Product':
-            pass
-
-        elif table == 'Substitut':
-            pass"""
 
 
 
