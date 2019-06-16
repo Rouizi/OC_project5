@@ -13,23 +13,24 @@ class OpenFoodFact:
         r_json = r.json()  # type(r_json) = dict
         data_categories = r_json['tags']  # type(tag_category) = list
 
-        list_of_category = []
+        list_of_categories = []
         # We wont to have this category in list_of_category
-        category = ['Confiseries', 'Biscuits fourrés', 'Produits à tartiner', 'Céréales et dérivés',
+        categories = ['Confiseries', 'Biscuits fourrés', 'Produits à tartiner', 'Céréales et dérivés',
                     'Desserts', 'Surgelés', 'Sauces', 'Conserves', 'Chocolats', 'Confitures et marmelades']
 
-        for data_cat in data_categories:  # type(data_cat) = dict
-            if data_cat['name'] in category:
-                list_of_category.append(data_cat['name'])
-        return list_of_category
+        for data_category in data_categories:  # type(data_cat) = dict
+            if data_category['name'] in categories:
+                list_of_categories.append(data_category['name'])
+        return list_of_categories
 
     def get_product(self):
-        list_of_category = self.get_category()
+        list_of_categories = self.get_category()
+        list_of_name_prod = []
         dict_cat_prod = {}
         for i in range(10):
             for page in range(1,20):
-                # exemple: requests.get('https://fr.openfoodfacts.org/categorie/Epicerie/1.json')
-                r = requests.get(self.url_cat[0:-8] + '/' + list_of_category[i] + '/' + str(page) + '.json')
+                # exemple: requests.get('https://fr.openfoodfacts.org/categorie/Confiseries/1.json')
+                r = requests.get(self.url_cat[0:-8] + '/' + list_of_categories[i] + '/' + str(page) + '.json')
                 r_json = r.json()
                 data_products = r_json['products'] # type(data_products) = list
                 dict_prod = {}
@@ -38,8 +39,10 @@ class OpenFoodFact:
                     # 'product_name', 'nutrition_grade_fr' or 'code' in their fiels so we make an if to filter all that
                     if ('product_name' in prod_detail and prod_detail['product_name'] != '' and
                         'nutrition_grade_fr' in prod_detail and prod_detail['nutrition_grade_fr'] != '' and
-                        'code' in prod_detail and prod_detail['code'] != ''):
-                            dict_prod[prod_detail['product_name']] = [prod_detail['nutrition_grade_fr'].upper(), prod_detail['code']]
+                        'code' in prod_detail and prod_detail['code'] != ''
+                        and prod_detail['product_name'].lower() not in list_of_name_prod):
+                        list_of_name_prod.append(prod_detail['product_name'].lower())
+                        dict_prod[prod_detail['product_name']] = [prod_detail['nutrition_grade_fr'].upper(), prod_detail['code']]
 
                 #If dictionary is empty we can't do dict[x].update(dict2) so we enter in the first case
                 if i + 1 not in dict_cat_prod:
@@ -47,9 +50,10 @@ class OpenFoodFact:
                 else:
                     dict_cat_prod[i + 1].update(dict_prod)
                 if len(dict_cat_prod[i + 1]) > 50:
+                    # We take only 50 products per category
                     dict_cat_prod[i + 1] = dict(list(dict_cat_prod[i + 1].items())[0:50])
                     break
-            print(f"Récupération des produits de la catégorie: {list_of_category[i]}")
+            print(f"Récupération des produits de la catégorie: {list_of_categories[i]}")
         return dict_cat_prod
 
     def get_substitut(self, bar_code):
@@ -65,6 +69,7 @@ class OpenFoodFact:
              len(data_prod['categories_tags']): data_prod['categories_tags']
         }
         len_list = max(d.keys())
+        # We take the field hwo contains tho most categories
         list_of_categories = d[len_list]
         categories_dict = {}
         for name_cat in list_of_categories:
@@ -77,14 +82,17 @@ class OpenFoodFact:
         cat_with_min_prod = categories_dict[min_nb_prod]
         i = 1
         nutri_score = ''
+        # We search on the category that contains the least products
         while not nutri_score:
             r = requests.get(self.url_cat[0:-8] + '/' + cat_with_min_prod + '/' + str(i) + '.json')
             r_json = r.json()
             data_products = r_json['products']
             dict_description = {}
+            # We research on only 10 pages so as not to take too much time to find a substitute
             if i > 10:
                 print("Ce produit n'a pas de substitut de meilleur qualité")
                 return dict_description
+            # If the category contains less then 10 pages ( ex: 6p), so beyond the 6th pages data_products = []
             if not data_products:
                 print("Ce produit n'a pas de substitut de meilleur qualité")
                 return dict_description
@@ -92,6 +100,7 @@ class OpenFoodFact:
             for prod_details in data_products:
                 if 'nutrition_grade_fr' in prod_details and prod_details['nutrition_grade_fr'] != '':
                     n = prod_details['nutrition_grade_fr']
+                    # If the nutri_score of the substitute is better than that of the product so we take this substitute
                     if dict_nutri_score[n] < dict_nutri_score[nutri_score_prod]:
                         nutri_score = n.upper()
                         if 'product_name' in prod_details:
@@ -126,7 +135,7 @@ class Database:
                                           )
             self.cnx.get_warnings = True
             if self.cnx.is_connected():
-                print('vous etes connecté')
+                print(f'vous etes connecté en tant que {self.user}')
                 self.is_connected = True
 
         except mysql.connector.Error as e:
@@ -134,6 +143,7 @@ class Database:
 
 
     def create_db(self):
+        # We will not try to create DB if we are not connected (wrong password or user ...)
         if self.is_connected:
             cursor = self.cnx.cursor()
             query_create = f"CREATE DATABASE IF NOT EXISTS {self.name_db}"
@@ -141,6 +151,7 @@ class Database:
 
             try:
                 cursor.execute(query_create)
+                # If DB exists we will have a warning so we skip this step
                 if not cursor.fetchwarnings():
                     print(f"Création de la base de données {self.name_db}...")
                 cursor.execute(query_use)
@@ -187,26 +198,30 @@ class Database:
                            "ENGINE=InnoDB"
                            )
         try:
-            cursor.execute(query_category)
-            cursor.execute(query_product)
-            cursor.execute(query_substitut)
-            if cursor.fetchwarnings():
-                self.insert = False
+            if self.is_connected:
+                cursor.execute(query_category)
+                cursor.execute(query_product)
+                cursor.execute(query_substitut)
+                if cursor.fetchwarnings():
+                    # If table already exists we turn "self.insert" into false to not insert data again
+                    self.insert = False
 
 
         except mysql.connector.Error as e:
             print(e)
 
     def insert_data(self):
+        # If we are not connected due to wrong password or for another reason, we will have an exception if we try
+        # to insert data so we make an if to avoid that
         if self.is_connected and self.insert:
             cursor = self.cnx.cursor()
 
             # INSERT LIST OF CATEGORY
             query_cat = "INSERT INTO Category (name) VALUES (%s)"
-            list_of_category = OpenFoodFact('https://fr.openfoodfacts.org/categories&json=1', None).get_category()
-            print(f'Récupération des catégories: {list_of_category}')
+            list_of_categories = OpenFoodFact('https://fr.openfoodfacts.org/categories&json=1', None).get_category()
+            print(f'Récupération des catégories: {list_of_categories}')
             list_of_tuple = []
-            for name_of_cat in list_of_category:
+            for name_of_cat in list_of_categories:
                 name = name_of_cat,
                 list_of_tuple.append(name)
             try:
@@ -253,22 +268,45 @@ class Database:
                             "WHERE Category.name = %s ORDER BY name")
         name_cat = dict_cat[response],
         cursor.execute(query_prod_from_cat, name_cat)
-        dict_prod = {}
+        dict_prod_from_cat = {}
         while True:
             rows = cursor.fetchmany(size=100)
             if not rows:
                 break
             i = 1
-            for row in rows:
-                dict_prod[i] = [row[0], row[2], row[1]]
+            for name_prod, nutri_score, bar_code in rows:
+                dict_prod_from_cat[i] = [name_prod, bar_code, nutri_score]
                 i += 1
-        print(dict_prod)
+        return dict_prod_from_cat
+
+    def select_prod(self):
+        cursor = self.cnx.cursor()
+        query_prod = "SELECT name, nutri_score, bar_code FROM Product ORDER BY name"
+        cursor.execute(query_prod)
+        rows = cursor.fetchmany(size=500)
+        i = 0
+        dict_prod = {}
+        for name_prod, nutri_score, bar_code in rows:
+            i += 1
+            dict_prod[i] = [name_prod, bar_code, nutri_score]
         return dict_prod
 
+    def select_substitut(self):
+        cursor = self.cnx.cursor()
+        query_subst = "SELECT name, nutri_score, brand, quantity, ingredients, stores, url FROM Substitut"
+        cursor.execute(query_subst)
+        for i in cursor:
+            print('nom du substitut:', i[0])
+            print('nutri_score:', i[1])
+            print('marque(s):', i[2])
+            print('quantity:', i[3])
+            print('ingredients:', i[4])
+            print('stores:', i[5])
+            print('url:', i[6])
+            print(50 * '-')
 
 
-
-    def save_substitut(self, bar_code_prod, dict_description, name_prod):
+    def save_substitut(self, bar_code_prod, dict_description):
         cursor = self.cnx.cursor()
 
         query_id = "SELECT id FROM Product WHERE bar_code = %s"
@@ -287,6 +325,21 @@ class Database:
         cursor.execute(query_insert_sub, args)
         self.cnx.commit()
         print("Substitut enregistrer")
+
+
+
+
+"""
+        elif table == 'Product':
+            pass
+
+        elif table == 'Substitut':
+            pass"""
+
+
+
+
+
 
 
 
