@@ -86,7 +86,7 @@ So if we take, for example, the product 'Kiri à la crème de lait (12 Portions)
 
 To be able to use the program you must either connect with the user "root" (administrator having all rights) or create a new user and give him all the rights on the database 'alimentation'.
 
-If you choose to create a new user to use the program do like this:
+If you choose to create a new user to use the program, do like this:
 
 Connect to mysql with "root" and then type this query:
 
