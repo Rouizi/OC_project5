@@ -2,7 +2,7 @@ import mysql.connector
 from classes import OpenFoodFact
 from classes import Database
 
-database = Database('root', 'Lalydydu1456', 'alimentation')
+database = Database('alimentation')
 database.create_db()
 database.create_tables()
 database.insert_data()
@@ -16,31 +16,32 @@ def main():
     while main_menu:
 
         print(45 * '-')
-        print("1- Quel aliment souhaitez-vous remplcer ?\n"
-              "2- Retrouver mes aliments substitués\n"
-              "3- Quitter le programme")
-        response1 = input(':')
+        print("1- What food do you want to replace ?\n"
+              "2- Find my substituted foods\n"
+              "3- Quit the program")
+        response1 = input(': ')
         print(45 * '-')
 
         try:
             response1 = int(response1)
         except ValueError:
-            print("vous n'avez pas saisi de nombre")
+            print("You have not entered a number")
             continue
 
         if int(response1) == 1:
-
             seconday_menu = True
             while seconday_menu:
-                print("a- Sélectionnez une catégorie\n"
-                      "b- Sélectionnez un produit")
+                print(45* '-')
+                print("a- Select a category\n"
+                      "b- Select a product")
 
-                response2 = input(':')
+                response2 = input(': ')
                 print(45 * '-')
                 if response2 == 'a':
                     choice_cat = True
                     choice_prod = True
                     dict_cat = database.select_cat()
+                    # Displays all the categories
                     for i, name_cat in dict_cat.items():
                         print(str(i) + '-', name_cat)
 
@@ -49,45 +50,50 @@ def main():
                     dict_prod = database.select_prod()
                     dict_prod_displayed = {}
                     l = [50, 100, 150, 200, 250, 300, 350, 400, 450, 500]
+
+                    # We display 50 products and we enter in the while loop to ask the user if he want to display
+                    # the next 50 products
                     for i, (name_prod, bar_code, nutri_score,) in dict_prod.items():
                         print(str(i) + '-', name_prod, '### NUTRI_SCORE:', nutri_score)
                         dict_prod_displayed[i] = [name_prod, bar_code, nutri_score]
+
+                        if i == 500:
+                            break
                         if i in l:
                             lock = True
                             while lock:
                                 print(45 * '-')
-                                reponse = input("Afficher les 50 prochains produits o/n ?: ")
+                                response = input("Display the next 50 products y/n: ")
                                 print(45 * '-')
-                                if reponse != 'o' and reponse != 'n':
-                                    print("Vous n'avez pas saisi de réponse valide")
+                                if response != 'y' and response != 'n':
+                                    print("You did not enter a valid response")
                                     continue
                                 else:
                                     lock = False
 
-                            if reponse == 'o':
+                            if response == 'y':
                                 continue
-                            elif reponse == 'n':
+                            elif response == 'n':
                                 break
                     dict_prod = dict_prod_displayed
 
                 else:
-                    print("Vous n'avez pas saisi de réponse valide")
+                    print("You did not enter a valid response")
                     continue
-
 
                 while choice_cat:
                     print(45 * '-')
-                    cat_id = input('Sélectionnez une catégorie:')
+                    cat_id = input('Select a category from the list: ')
                     print(45 * '-')
 
                     try:
                         cat_id = int(cat_id)
                     except ValueError:
-                        print("Vous n'avez pas saisi de nombre")
+                        print("You have not entered a number")
                         continue
-
+                    # We check if the user enter a valid number of category
                     if cat_id not in dict_cat.keys():
-                        print("Vous n'avez pas saisi un nombre valide")
+                        print("You have not entered a valid number")
                         continue
                     else:
                         dict_prod_from_cat = database.select_prod_from_cat(dict_cat, cat_id)
@@ -100,24 +106,26 @@ def main():
 
                 while choice_prod:
                     print(45 * '-')
-                    prod_id = input("Sélectionnez un produit: ")
+                    num_prod = input("Select a product from the list: ")
                     print(45 * '-')
 
                     try:
-                        prod_id = int(prod_id)
+                        num_prod = int(num_prod)
                     except ValueError:
-                        print("Vous n'avez pas saisi de nombre")
+                        print("You have not entered a number")
                         continue
 
-                    if prod_id not in dict_prod.keys():
-                        print("Vous n'avez pas saisi un nombre valide")
+                    # We check if the user enter a valid number of products
+                    if num_prod not in dict_prod.keys():
+                        print("You have not entered a valid number")
                         continue
                     else:
-                        bar_code_prod = dict_prod[prod_id][1]
+                        bar_code_prod = dict_prod[num_prod][1]
                         dict_description= OpenFoodFact('https://fr.openfoodfacts.org/categories&json=1',
-                                    'https://fr.openfoodfacts.org/api/v0/produit').get_substitut(bar_code_prod)
-                        name_prod = dict_prod[prod_id][0]
+                                    'https://fr.openfoodfacts.org/api/v0/produit').get_substitute(bar_code_prod)
+                        name_prod = dict_prod[num_prod][0]
 
+                        # We check if we have a substitute
                         if dict_description:
                             if 'product_name' not in dict_description.keys():
                                 dict_description['product_name'] = ''
@@ -134,14 +142,14 @@ def main():
                             if 'url' not in dict_description.keys():
                                 dict_description['url'] = ''
 
-                            print('nom du produit:', name_prod)
-                            print('nutri_score du produit:', dict_prod[prod_id][2])
-                            print('nom du substitut:', dict_description['product_name'])
+                            print('Product name:', name_prod)
+                            print('nutri_score of the product:', dict_prod[num_prod][2])
+                            print('substitute name:', dict_description['product_name'])
                             print('nutri_score:', dict_description['nutri_score'])
-                            print('marque(s):', dict_description['brands'])
-                            print('quantité:', dict_description['quantity'])
-                            print('ingrédients:', dict_description['ingredients_text'])
-                            print('magasin(s):', dict_description['stores'])
+                            print('brand(s):', dict_description['brands'])
+                            print('quantity:', dict_description['quantity'])
+                            print('ingredients:', dict_description['ingredients_text'])
+                            print('store(s):', dict_description['stores'])
                             print('url:', dict_description['url'])
 
                         else:
@@ -150,26 +158,27 @@ def main():
                         choice = False
                         while not choice:
                             print(45 * '-')
-                            print('1- Enregistrer substitut\n'
-                                  '2- Sélectionner un autre produit\n'
-                                  '3- Retourner au menu secondaire\n'
-                                  '4- Retourner au menu principal')
+                            print('1- Save substitute\n'
+                                  '2- Select another product\n'
+                                  '3- Return to the secondary menu\n'
+                                  '4- Return to the main menu')
                             response3 = input(': ')
                             print(45 * '-')
 
                             try:
                                 response3 = int(response3)
                             except ValueError:
-                                print("Vous n'avez pas saisi de réponse valide")
+                                print("You have not entered a valid answer")
                                 continue
-                            if response3 not in (1, 2, 3, 4):
-                                print("Vous n'avez pas saisi un nombre valide")
 
+                            if response3 not in (1, 2, 3, 4):
+                                print("You have not entered a valid number")
+                                continue
                             if response3 == 1:
                                 try:
-                                    database.save_substitut(bar_code_prod, dict_description)
+                                    database.save_substitute(bar_code_prod, dict_description)
                                 except mysql.connector.Error:
-                                    print("Vous avez déjà enregistrer ce substitut")
+                                    print("You already have registered this substitute")
                                     continue
                             elif response3 == 2:
                                 choice = True
@@ -182,12 +191,22 @@ def main():
                                 seconday_menu = False
 
         elif int(response1) == 2:
-            database.select_substitut()
+            list_of_data = database.select_substitute()
+            for substitute in list_of_data:
+                print('substitute name:', substitute[0])
+                print('nutri_score:', substitute[1])
+                print('brand(s):', substitute[2])
+                print('quantity:', substitute[3])
+                print('ingredients:', substitute[4])
+                print('store(s):', substitute[5])
+                print('url:', substitute[6])
+                print(50 * '-')
         elif int(response1) == 3:
-            print("A bientôt sur OpenFoodFacts")
+            print("See you soon on OpenFoodFacts")
             main_menu = False
         else:
-            print("Vous n'avez pas saisi une réponse valide")
+            print("You have not entered a valid answer")
+            continue
 
 
 
@@ -196,5 +215,5 @@ database.cnx.cursor().close()
 database.cnx.close()
 
 """
-DROP TABLE Substitut, Product, Category;
+DROP TABLE Substitute, Product, Category;
 """

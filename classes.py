@@ -3,18 +3,22 @@ import requests
 
 
 class OpenFoodFact:
+    """This class retrieves data from the web site OpenFoodFacts"""
+
     def __init__(self, url_cat, url_prod):
         self.url_cat = url_cat
         self.url_prod = url_prod
 
 
     def get_category(self):
+        """This fonction retrives 10 categories from the web site"""
+
         r = requests.get(self.url_cat) # self.url_cat = 'https://fr.openfoodfacts.org/categories&json=1'
         r_json = r.json()  # type(r_json) = dict
         data_categories = r_json['tags']  # type(tag_category) = list
 
         list_of_categories = []
-        # We wont to have this category in list_of_category
+        # We want to have this category in list_of_category
         categories = ['Confiseries', 'Biscuits fourrés', 'Produits à tartiner', 'Céréales et dérivés',
                     'Desserts', 'Surgelés', 'Sauces', 'Conserves', 'Chocolats', 'Confitures et marmelades']
 
@@ -24,10 +28,16 @@ class OpenFoodFact:
         return list_of_categories
 
     def get_product(self):
+        """This fonction retrives 50 products from each categories"""
+
+        # We want to have products that belong to these categories
         list_of_categories = self.get_category()
         list_of_name_prod = []
         dict_cat_prod = {}
+        # We go through each category
         for i in range(10):
+            # We go through each page (20 pages max.) of each category. Actually we need only 3 pages to have our
+            # 50 products but do not forget that some pages does not contain nutri_score or product_name in their fields
             for page in range(1,20):
                 # exemple: requests.get('https://fr.openfoodfacts.org/categorie/Confiseries/1.json')
                 r = requests.get(self.url_cat[0:-8] + '/' + list_of_categories[i] + '/' + str(page) + '.json')
@@ -53,10 +63,12 @@ class OpenFoodFact:
                     # We take only 50 products per category
                     dict_cat_prod[i + 1] = dict(list(dict_cat_prod[i + 1].items())[0:50])
                     break
-            print(f"Récupération des produits de la catégorie: {list_of_categories[i]}")
+            print(f"Recovery of products of the {list_of_categories[i]} category")
         return dict_cat_prod
 
-    def get_substitut(self, bar_code):
+    def get_substitute(self, bar_code):
+        """This fonction retrives a substitute for a given product"""
+
         dict_nutri_score = {'a': 1, 'b': 2, 'c': 3, 'd': 4, 'e': 5}
         # for exemple self.url_prod = 'https://fr.openfoodfacts.org/api/v0/produit/4060800002242.json'
         r_prod = requests.get(self.url_prod + '/' + bar_code + '.json')
@@ -90,11 +102,11 @@ class OpenFoodFact:
             dict_description = {}
             # We research on only 10 pages so as not to take too much time to find a substitute
             if i > 10:
-                print("Ce produit n'a pas de substitut de meilleur qualité")
+                print("This product has no substitute of better quality")
                 return dict_description
             # If the category contains less then 10 pages ( ex: 6p), so beyond the 6th pages data_products = []
             if not data_products:
-                print("Ce produit n'a pas de substitut de meilleur qualité")
+                print("This product has no substitute of better quality")
                 return dict_description
 
             for prod_details in data_products:
@@ -122,27 +134,34 @@ class OpenFoodFact:
 
 
 class Database:
-    def __init__(self, user, password, name_db):
-        self.user = user
-        self.password = password
+    """This class is responsible for creating th DB, tables, inserting data into the tables, select data ..."""
+
+    def __init__(self, name_db):
         self.name_db = name_db
         self.insert = True
         self.is_connected = False
-        try:
-            self.cnx = mysql.connector.connect(host='localhost',
-                                          user=self.user,
-                                          password=self.password,
-                                          )
-            self.cnx.get_warnings = True
-            if self.cnx.is_connected():
-                print(f'vous etes connecté en tant que {self.user}')
-                self.is_connected = True
+        while True:
+            user = input("Enter your username: ")
+            password = input("Enter your password: ")
+            try:
+                self.cnx = mysql.connector.connect(host='localhost',
+                                              user=user,
+                                              password=password,
+                                              )
+                self.cnx.get_warnings = True
+                if self.cnx.is_connected():
+                    print(f'You are logged in as {user}')
+                    self.is_connected = True
+                    break
 
-        except mysql.connector.Error as e:
-            print(e)
+            except mysql.connector.Error as e:
+                print(e)
+                continue
 
 
     def create_db(self):
+        """This fonction creates our database"""
+
         # We will not try to create DB if we are not connected (wrong password or user ...)
         if self.is_connected:
             cursor = self.cnx.cursor()
@@ -153,7 +172,7 @@ class Database:
                 cursor.execute(query_create)
                 # If DB exists we will have a warning so we skip this step
                 if not cursor.fetchwarnings():
-                    print(f"Création de la base de données {self.name_db}...")
+                    print(f"Creation of the database {self.name_db}...")
                 cursor.execute(query_use)
 
 
@@ -161,6 +180,8 @@ class Database:
                 print(e)
 
     def create_tables(self):
+        """This fonction creates our tables"""
+
         cursor = self.cnx.cursor()
         query_category = ("CREATE TABLE IF NOT EXISTS Category ("
                  "id SMALLINT UNSIGNED NOT NULL AUTO_INCREMENT, "
@@ -181,7 +202,7 @@ class Database:
                           "ENGINE=InnoDB"
                           )
 
-        query_substitut = ("CREATE TABLE IF NOT EXISTS Substitut ("
+        query_substitute = ("CREATE TABLE IF NOT EXISTS Substitute ("
                            "id INT UNSIGNED NOT NULL AUTO_INCREMENT, "
                            "product_id INT UNSIGNED NOT NULL, "
                            "name VARCHAR(255) NOT NULL, "
@@ -201,7 +222,7 @@ class Database:
             if self.is_connected:
                 cursor.execute(query_category)
                 cursor.execute(query_product)
-                cursor.execute(query_substitut)
+                cursor.execute(query_substitute)
                 if cursor.fetchwarnings():
                     # If table already exists we turn "self.insert" into false to not insert data again
                     self.insert = False
@@ -211,15 +232,17 @@ class Database:
             print(e)
 
     def insert_data(self):
+        """This fonction inserts data in the tables"""
+
         # If we are not connected due to wrong password or for another reason, we will have an exception if we try
-        # to insert data so we make an if to avoid that
+        # to insert data, so we make an if to avoid that
         if self.is_connected and self.insert:
             cursor = self.cnx.cursor()
 
-            # INSERT LIST OF CATEGORY
+            # INSERTING THE LIST OF CATEGORIES
             query_cat = "INSERT INTO Category (name) VALUES (%s)"
             list_of_categories = OpenFoodFact('https://fr.openfoodfacts.org/categories&json=1', None).get_category()
-            print(f'Récupération des catégories: {list_of_categories}')
+            print(f'Recovery of categories: {list_of_categories}')
             list_of_tuple = []
             for name_of_cat in list_of_categories:
                 name = name_of_cat,
@@ -231,7 +254,7 @@ class Database:
             except mysql.connector.Error as e:
                 print(e)
 
-            # INSERT LIST OF PRODUCTS
+            # INSERTING THE LIST OF PRODUCTS
             query_product = ("INSERT INTO Product (name, nutri_score, bar_code, category_id) " 
                             "VALUES (%s, %s, %s, %s)")
             dict_cat_prod = OpenFoodFact('https://fr.openfoodfacts.org/categories&json=1', None).get_product()
@@ -246,8 +269,9 @@ class Database:
                 print(e)
 
     def select_cat(self):
-        cursor = self.cnx.cursor()
+        """This fonction selects and the returns in dictionary all name ofcategories in the table Category"""
 
+        cursor = self.cnx.cursor()
         query_cat = "SELECT name FROM Category "
         cursor.execute(query_cat)
 
@@ -259,15 +283,16 @@ class Database:
             i += 1
         return dict_cat
 
-
     def select_prod_from_cat(self, dict_cat, response):
-        cursor = self.cnx.cursor()
+        """This fonction selects and returns in a dictionary the 50 products of a given category"""
 
+        cursor = self.cnx.cursor()
         query_prod_from_cat = ("SELECT Product.name, Product.nutri_score, Product.bar_code FROM Category " 
                             "INNER JOIN Product ON Product.category_id = Category.id " 
                             "WHERE Category.name = %s ORDER BY name")
         name_cat = dict_cat[response],
         cursor.execute(query_prod_from_cat, name_cat)
+
         dict_prod_from_cat = {}
         while True:
             rows = cursor.fetchmany(size=100)
@@ -280,6 +305,8 @@ class Database:
         return dict_prod_from_cat
 
     def select_prod(self):
+        """This fonction selects and returns in dictionary all the prodcuts from the table Product"""
+
         cursor = self.cnx.cursor()
         query_prod = "SELECT name, nutri_score, bar_code FROM Product ORDER BY name"
         cursor.execute(query_prod)
@@ -291,22 +318,28 @@ class Database:
             dict_prod[i] = [name_prod, bar_code, nutri_score]
         return dict_prod
 
-    def select_substitut(self):
+    def select_substitute(self):
+        """This fonction selects and displays a substitute of a product from the table Substitute """
+
         cursor = self.cnx.cursor()
-        query_subst = "SELECT name, nutri_score, brand, quantity, ingredients, stores, url FROM Substitut"
-        cursor.execute(query_subst)
-        for i in cursor:
-            print('nom du substitut:', i[0])
-            print('nutri_score:', i[1])
-            print('marque(s):', i[2])
-            print('quantity:', i[3])
-            print('ingredients:', i[4])
-            print('stores:', i[5])
-            print('url:', i[6])
-            print(50 * '-')
+        query_subs = "SELECT name, nutri_score, brand, quantity, ingredients, stores, url FROM Substitute"
+        cursor.execute(query_subs)
+        rows = cursor.fetchall()
+        list_of_data = []
+        i = 1
+
+        if not rows:
+            print("There is nothing to display, you have not yet register a substitute")
+            return list_of_data
+        else:
+            for row in rows:
+                list_of_data.append([row[0], row[1], row[2], row[3], row[4], row[5], row[6]])
+                i += 1
+            return list_of_data
 
 
-    def save_substitut(self, bar_code_prod, dict_description):
+
+    def save_substitute(self, bar_code_prod, dict_description):
         cursor = self.cnx.cursor()
 
         query_id = "SELECT id FROM Product WHERE bar_code = %s"
@@ -315,7 +348,7 @@ class Database:
         id = 0
         for i in cursor:
             id = i[0]
-        query_insert_sub = ("INSERT INTO Substitut (product_id, name, brand, "
+        query_insert_sub = ("INSERT INTO Substitute (product_id, name, brand, "
                             "quantity, ingredients, nutri_score, stores, url) "
                             "VALUES (%s, %s, %s, %s, %s, %s, %s, %s)")
         args = (id, dict_description['product_name'], dict_description['brands'],
@@ -324,26 +357,4 @@ class Database:
                 dict_description['url'])
         cursor.execute(query_insert_sub, args)
         self.cnx.commit()
-        print("Substitut enregistrer")
-
-
-
-
-"""
-        elif table == 'Product':
-            pass
-
-        elif table == 'Substitut':
-            pass"""
-
-
-
-
-
-
-
-
-
-
-
-
+        print("Substitute save")
