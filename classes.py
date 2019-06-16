@@ -174,10 +174,11 @@ class Database:
                 if not cursor.fetchwarnings():
                     print(f"Creation of the database {self.name_db}...")
                 cursor.execute(query_use)
+                return None
 
 
             except mysql.connector.Error as e:
-                print(e)
+                return e
 
     def create_tables(self):
         """This fonction creates our tables"""

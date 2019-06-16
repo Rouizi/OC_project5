@@ -2,10 +2,18 @@ import mysql.connector
 from classes import OpenFoodFact
 from classes import Database
 
-database = Database('alimentation')
-database.create_db()
-database.create_tables()
-database.insert_data()
+access_to_db = False
+while not access_to_db:
+    database = Database('alimentation')
+    access_denied = database.create_db()
+    if access_denied:
+        print(access_denied)
+        print("Use another user")
+        continue
+    else:
+        database.create_tables()
+        database.insert_data()
+        break
 
 
 

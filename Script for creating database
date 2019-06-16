@@ -1,0 +1,36 @@
+CREATE DATABASE IF NOT EXISTS alimentation
+USE alimentation
+
+CREATE TABLE IF NOT EXISTS Category (
+                 id SMALLINT UNSIGNED NOT NULL AUTO_INCREMENT, 
+                 name VARCHAR(100) NOT NULL, 
+                 PRIMARY KEY (id)
+                 )
+                 ENGINE=InnoDB
+				 
+CREATE TABLE IF NOT EXISTS Product (
+                          id INT UNSIGNED NOT NULL AUTO_INCREMENT, 
+                          name VARCHAR(255) NOT NULL, 
+                          nutri_score CHAR(1), 
+                          bar_code CHAR(13) NOT NULL, 
+                          category_id SMALLINT UNSIGNED NOT NULL, 
+                          PRIMARY KEY (id), 
+                          CONSTRAINT fk_category_id FOREIGN KEY (category_id) REFERENCES Category(id)
+                          )
+                          ENGINE=InnoDB
+						  
+CREATE TABLE IF NOT EXISTS Substitute (
+                           id INT UNSIGNED NOT NULL AUTO_INCREMENT, 
+                           product_id INT UNSIGNED NOT NULL, 
+                           name VARCHAR(255) NOT NULL, 
+                           brand TEXT, 
+                           quantity VARCHAR(200), 
+                           ingredients TEXT, 
+                           nutri_score CHAR(1), 
+                           stores TEXT, 
+                           url VARCHAR(255), 
+                           PRIMARY KEY (id), 
+                           CONSTRAINT fk_product_id FOREIGN KEY (product_id) REFERENCES Product(id), 
+                           UNIQUE INDEX ind_uni_url (url)
+                           )
+                           ENGINE=InnoDB
