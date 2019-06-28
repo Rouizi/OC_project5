@@ -83,7 +83,7 @@ For certain products the program offers a not very convincing substitute, this i
 
 So if we take, for example, the product "Kiri à la crème de lait (12 Portions)" (https://fr.openfoodfacts.org/produit/3073780258098/kiri-a-la-creme-de-lait-12-portions) the program will look for a substitute in the "Gouter" category (https://fr-en.openfoodfacts.org/category/gouter) so it could offer us "Grany cereal chocolate" as a substitute, which is not really a substitute. 
 
-For the product "Kiri à la crème de lait (12 Portions)" he will not offer us 'Grany cereals chocolate' since he does not have a better nutri_score but I gave an example to know that it can happen for other products
+For the product "Kiri à la crème de lait (12 Portions)" he will not offer us "Grany cereals chocolate" since he does not have a better nutri_score but I gave an example to know that it can happen for other products
 ## At the launch of the program
 
 To be able to use the program you must either connect with the user "root" (administrator having all rights) or create a new user and give him all the rights on the database 'alimentation'.
