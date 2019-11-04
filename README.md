@@ -4,7 +4,7 @@
 The startup Pur Beurre noticed that their users wanted to change their diet but did not know where to start. Replace Nutella with hazelnut paste, yes, but which one? And in which store to buy it? Their idea is to create a program that would interact with the Open Food Facts database to retrieve food, compare it and offer the user a healthier substitute for the food that makes him want.
 
 
-## Description of the user path
+## Description of the user journey
 The user is on the terminal. The terminal shows him the following choices:
 
 1 - Which food do you want to replace?<br/>
