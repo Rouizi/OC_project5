@@ -92,8 +92,6 @@ If you choose to create a new user to use the program, do like this:
 
 Connect to mysql with "root" and then type this query:
 
-CREATE USER 'username'@'localhost' IDENTIFIED BY 'password';
+`CREATE USER 'username'@'localhost' IDENTIFIED BY 'password';`
 
-GRANT ALL PRIVILEGES ON alimentation.* TO 'username'@'localhost';
-
-If you need some help contact me on: cinorouizi@hotmail.fr or on facebook search: Yacine Rouizi.
+`GRANT ALL PRIVILEGES ON alimentation.* TO 'username'@'localhost';`
