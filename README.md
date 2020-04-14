@@ -86,7 +86,7 @@ So if we take, for example, the product "Kiri à la crème de lait (12 Portions)
 For the product "Kiri à la crème de lait (12 Portions)" he will not offer us "Grany cereals chocolate" since he does not have a better nutri_score but I gave an example to know that it can happen for other products
 ## At the launch of the program
 
-To be able to use the program you must either connect with the user "root" (administrator having all rights) or create a new user and give him all the rights on the database 'alimentation'.
+To be able to use the program you must either connect with the user "root" (administrator having all rights) or create a new user and give him all the rights on the database `'alimentation'`.
 
 If you choose to create a new user to use the program, do like this:
 
